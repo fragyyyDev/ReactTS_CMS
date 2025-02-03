@@ -1,10 +1,16 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
+
 
 function App() {
 
   return (
-    <>
-      <h1 className="text-7xl text-red-500">Is tailwind working?</h1>    
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<h1>Sigma</h1>} />
+        <Route path="/login" element={<Login/>} />
+      </Routes>
+    </Router>
   )
 }
 
