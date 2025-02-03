@@ -5,16 +5,17 @@ dotenv.config();
 import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
 
-// Load configuration from .env
+// Načtení konfigurace z .env
 const SECRET_KEY = process.env.JWT_SECRET || 'some_fallback_secret';
-const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173'; 
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const DB_PASSWORD = process.env.POSTGRES_PASSWORD;
 const port = 3000;
 
-// Create Express application
+// Vytvoření Express aplikace
 const app = express();
 app.use(express.json());
 
-// Setup CORS
+// Nastavení CORS
 app.use(
   cors({
     origin: allowedOrigin,
@@ -22,35 +23,35 @@ app.use(
   })
 );
 
-// Connect to PostgreSQL
+// Připojení k PostgreSQL
 const pool = new Pool({
   host: 'localhost',
   port: 5432,
   user: 'postgres',
-  password: 'WasDerSigma01?',
+  password: DB_PASSWORD,
   database: 'postgres',
 });
 
 // -----------------------------
-//  JWT AUTHORIZATION MIDDLEWARE
+// JWT AUTHORIZAČNÍ MIDDLEWARE
 // -----------------------------
 const authorizeMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // Expect header "Authorization: Bearer <token>"
+  // Očekává hlavičku "Authorization: Bearer <token>"
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     res.status(401).json({ error: 'No token provided' });
     return;
   }
 
-  const token = authHeader.split(' ')[1]; // separate "Bearer"
+  const token = authHeader.split(' ')[1]; // oddělíme "Bearer"
   try {
-    // Verify token
+    // Ověření tokenu
     const decoded = jwt.verify(token, SECRET_KEY);
-    // Save token info into request (you may want to extend the Request interface)
+    // Uložíme informace o uživateli do requestu
     (req as any).user = decoded;
     next();
   } catch (error) {
@@ -59,28 +60,32 @@ const authorizeMiddleware = (
   }
 };
 
-// -----------------------------
-//  ROUTES
-// -----------------------------
+// Endpoint pro ověření tokenu
+app.get('/verify-token', authorizeMiddleware, (req: Request, res: Response) => {
+  res.json({ valid: true });
+});
 
-// Basic route
+// -----------------------------
+// OSTATNÍ ROUTES
+// -----------------------------
 app.get('/', (req: Request, res: Response): void => {
   res.send('Hello from Express with TypeScript!');
 });
 
-// Simple POST route
-app.post('/data', (req: Request, res: Response): void => {
-  const data = req.body;
-  res.json({
-    message: 'Data received successfully',
-    data,
-  });
+app.get('/get-all-articles', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const allArticles = await pool.query('SELECT * FROM articles');
+    res.json({
+      message: 'Data received successfully',
+      data: allArticles.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// -----------------------------
-//  LOGIN ROUTE
-// -----------------------------
-app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
+app.post('/login', async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -89,27 +94,26 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Find the user in the DB
+    // Hledání uživatele v databázi
     const queryResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = queryResult.rows[0];
 
     if (!user) {
-      // User with the given email doesn't exist
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    // Compare passwords (plaintext for now; use bcrypt.compare in production)
+    // Porovnání hesel (plaintext, pro produkci použijte bcrypt)
     if (user.password !== password) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    // Generate JWT
+    // Generování JWT (platnost 1 hodina)
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       SECRET_KEY,
-      { expiresIn: '1h' } // Expires in 1 hour
+      { expiresIn: '1h' }
     );
 
     res.json({ token });
@@ -119,21 +123,16 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// -----------------------------
-//  SECRET ROUTE (protected)
-// -----------------------------
 app.get('/secret', authorizeMiddleware, (req: Request, res: Response): void => {
-  // If we reached here, authorizeMiddleware succeeded and token is valid
-  // You can access user info via (req as any).user
+  // Pokud jsme sem došli, token je platný
   const userInfo = (req as any).user;
-
   res.json({
     message: 'This is a secret endpoint!',
     userInfo,
   });
 });
 
-// Start the server
+// Start serveru
 app.listen(port, () => {
-  console.log(`Server and sigma is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });

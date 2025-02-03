@@ -14,7 +14,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/login`,
+        `${import.meta.env.VITE_BACKEND_URL}/login`,
         {
           method: "POST",
           headers: {
@@ -27,8 +27,21 @@ const Login = () => {
         }
       );
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        return;
+      }
+
       const data = await response.json();
-      console.log(data);
+      console.log("Login successful:", data);
+
+      // Uložení tokenu do localStorage, pokud je k dispozici
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        // Případně můžete provést přesměrování na chráněnou stránku
+        // například pomocí useNavigate z react-router-dom
+      }
     } catch (error) {
       console.error("Login error:", error);
     }
