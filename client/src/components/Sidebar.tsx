@@ -1,6 +1,7 @@
 import { List, X } from '@phosphor-icons/react';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
 
 interface SidebarProps {
   toggleSidebar: () => void;
@@ -9,6 +10,12 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ toggleSidebar, isVisible, doAnimation }) => {
+  const navigate = useNavigate();
+  const logout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  };
+  
   return (
     <div
       className={`p-2 fixed top-0 left-0 md:w-[30vw] sm:w-[35vw] lg:w-[25vw] xl:w-[22vw] 2xl:w-[17vw] w-screen h-full ${
@@ -22,6 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleSidebar, isVisible, doAnimation
         <ul>
           <li className='font-medium'><Link to="/admin">Vytvořit článek</Link></li>
           <li className='font-medium'><Link to="/admin-clanky">Články</Link></li>
+          <li className='font-medium'><button onClick={logout}>Odhlásit se</button></li>
         </ul>
         {/* Tlačítko pro zavření sidebaru (pouze na mobilu) */}
         <button

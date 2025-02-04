@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { DotsSixVertical } from '@phosphor-icons/react';
+import { DotsSixVertical, Trash } from '@phosphor-icons/react';
 
 export type BlockType = 'heading' | 'paragraph' | 'image' | 'subheading';
 
@@ -76,33 +76,40 @@ const SortableItem: React.FC<SortableItemProps> = ({ block, deleteBlock }) => {
     <li
       ref={setNodeRef}
       style={style}
-      className="flex justify-between items-center p-2 border border-gray-200 rounded"
+      className="p-2 border border-gray-200 rounded-lg flex flex-row justify-between gap-2"
     >
-      <span>
-        <strong>{block.type}:</strong>{' '}
-        {block.type === 'image'
-          ? `URL: ${block.data.url}, Popisek: ${block.data.caption}`
-          : block.type === 'paragraph'
-            ? <ReactMarkdown>{block.data.text || ''}</ReactMarkdown>
-            : block.data.text}
-      </span>
-      <button
-        type="button"
-        onClick={() => deleteBlock(block.id)}
-        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-      >
-        Smazat
-      </button>
-      {/* Tlačítko, které aktivuje drag – na něj připojujeme atributy a event listenery */}
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="text-gray-500 px-2 py-1 rounded cursor-grab"
-      >
-        <DotsSixVertical size={32} />
-      </button>
+      <div className="flex flex-col">
+        <div>
+          <strong>{block.type}:</strong>
+        </div>
+        <div>
+          {block.type === 'image'
+            ? `URL: ${block.data.url}, Popisek: ${block.data.caption}`
+            : block.type === 'paragraph'
+              ? <ReactMarkdown>{block.data.text || ''}</ReactMarkdown>
+              : block.data.text}
+        </div>
+      </div>
+      <div className="flex gap-2 mt-2">
+        <button
+          type="button"
+          onClick={() => deleteBlock(block.id)}
+          className="text-red-500 px-2 py-1 rounded cursor-pointer"
+        >
+          <Trash size={24} />
+        </button>
+        {/* Tlačítko, které aktivuje drag – na něj připojujeme atributy a event listenery */}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="text-gray-500 px-2 py-1 rounded cursor-grab"
+        >
+          <DotsSixVertical size={32} />
+        </button>
+      </div>
     </li>
+
   );
 };
 
@@ -170,128 +177,139 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   return (
     <div className="flex flex-col md:flex-row gap-8">
       {/* Formulářová část */}
-      <form onSubmit={handleSubmit} className="flex-1 space-y-6 border p-4 rounded">
-        <div className="grid grid-cols-1 gap-4">
+      <form onSubmit={handleSubmit} className="flex-1 space-y-6  rounded">
+        <div className="grid grid-cols-1 gap-4 bg-[#F1F1FA] p-4 rounded-lg">
+          <h3 className='font-semibold'>Metadata</h3>
           <div>
-            <label className="block text-gray-700 mb-1">Název článku:</label>
+            <label className="block w-full mb-1 font-medium">Název článku:</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Název článku"
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-2 border border-gray-300 rounded bg-white"
             />
           </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Cover Image URL:</label>
-            <input
-              type="text"
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="https://example.com/cover.jpg"
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Autor:</label>
-            <input
-              type="text"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Jméno autora"
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-          </div>
-        </div>
-
-        <hr className="my-6" />
-
-        <h2 className="text-xl font-semibold">Přidat blok</h2>
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <label className="block text-gray-700 mb-1">Typ bloku:</label>
-            <select
-              value={blockType}
-              onChange={(e) => setBlockType(e.target.value as BlockType)}
-              className="w-full p-2 border border-gray-300 rounded"
-            >
-              <option value="heading">Nadpis</option>
-              <option value="subheading">Podnadpis</option>
-              <option value="paragraph">Odstavec</option>
-              <option value="image">Obrázek</option>
-            </select>
-          </div>
-
-          {blockType === 'image' ? (
-            <>
-              <div>
-                <label className="block text-gray-700 mb-1">URL obrázku:</label>
-                <input
-                  type="text"
-                  value={blockDataUrl}
-                  onChange={(e) => setBlockDataUrl(e.target.value)}
-                  placeholder="https://example.com/obrazek.jpg"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Popisek obrázku:</label>
-                <input
-                  type="text"
-                  value={blockDataCaption}
-                  onChange={(e) => setBlockDataCaption(e.target.value)}
-                  placeholder="Popisek obrázku"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </div>
-            </>
-          ) : (
-            <div>
-              <label className="block text-gray-700 mb-1">Text:</label>
+          <div className="flex items-center gap-2">
+            <div className="w-1/2">
+              <label className="block  w-full mb-1 font-medium">URL Fotky článku</label>
               <input
                 type="text"
-                value={blockDataText}
-                onChange={(e) => setBlockDataText(e.target.value)}
-                placeholder="Text obsahu bloku. Pro odkaz použijte syntax: [odkazový text](https://example.com)"
-                className="w-full p-2 border border-gray-300 rounded"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="https://example.com/cover.jpg"
+                className="w-full p-2 border border-gray-300 rounded bg-white"
               />
             </div>
-          )}
+            <div className="w-1/2">
+              <label className="block  w-full mb-1 font-medium">Autor:</label>
+              <input
+                type="text"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Jméno autora"
+                className="w-full p-2 border border-gray-300 rounded bg-white"
+              />
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={addBlock}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Přidat blok
-          </button>
         </div>
 
-        {blocks.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Seznam bloků:</h3>
-            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext
-                items={blocks.map((b) => b.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <ul className="space-y-2">
-                  {blocks.map((block) => (
-                    <SortableItem key={block.id} block={block} deleteBlock={deleteBlock} />
-                  ))}
-                </ul>
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
+        <div className="my-6" />
 
-        <hr className="my-6" />
+        <div className="bg-[#F1F1FA] p-4 rounded-lg">
+
+          <h2 className="text-xl font-semibold">Obsah</h2>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block  mb-1">Typ bloku:</label>
+              <select
+                value={blockType}
+                onChange={(e) => setBlockType(e.target.value as BlockType)}
+                className="w-full p-2 border border-gray-300 rounded bg-white"
+              >
+                <option value="heading">Nadpis</option>
+                <option value="subheading">Podnadpis</option>
+                <option value="paragraph">Odstavec</option>
+                <option value="image">Obrázek</option>
+              </select>
+            </div>
+
+            {blockType === 'image' ? (
+              <>
+                <div>
+                  <label className="block  mb-1">URL obrázku:</label>
+                  <input
+                    type="text"
+                    value={blockDataUrl}
+                    onChange={(e) => setBlockDataUrl(e.target.value)}
+                    placeholder="https://example.com/obrazek.jpg"
+                    className="w-full p-2 border  border-gray-300 rounded bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block  mb-1">Popisek obrázku:</label>
+                  <input
+                    type="text"
+                    value={blockDataCaption}
+                    onChange={(e) => setBlockDataCaption(e.target.value)}
+                    placeholder="Popisek obrázku"
+                    className="w-full p-2 border border-gray-300 rounded bg-white"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block  mb-1">Text:</label>
+                <input
+                  type="text"
+                  value={blockDataText}
+                  onChange={(e) => setBlockDataText(e.target.value)}
+                  placeholder="Text obsahu bloku"
+                  className="w-full p-2 border border-gray-300 rounded bg-white"
+                />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={addBlock}
+              className="bg-[#8165FF] text-white px-4 py-2 rounded-xl cursor-pointer"
+            >
+              Přidat blok
+            </button>
+          </div>
+
+
+        </div>
+
+        <div className="bg-[#F1F1FA] p-4 rounded-lg">
+          {blocks.length > 0 && (
+            <div className="">
+              <h3 className="text-lg font-semibold mb-2">Bloky</h3>
+              <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext
+                  items={blocks.map((b) => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className="space-y-2">
+                    {blocks.map((block) => (
+                      <SortableItem key={block.id} block={block} deleteBlock={deleteBlock} />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+        </div>
+
+        <div className="my-6" />
 
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-[#8165FF] w-full text-white px-4 py-2 rounded-xl cursor-pointer"
         >
-          Odeslat
+          Zveřejnit článek
         </button>
       </form>
 
