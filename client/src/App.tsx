@@ -4,6 +4,7 @@ import PrivateRoute from './components/PrivateRoute'
 import Admin from './pages/Admin'
 import Home from './pages/Home'
 import { ToastContainer, Slide } from 'react-toastify'
+import ArticleDetail from './pages/Article'
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path='/article/:slug' element={<ArticleDetail />} />
       </Routes>
       <ToastContainer
         position="top-right"

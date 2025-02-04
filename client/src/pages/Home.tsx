@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
 
-interface Article {
+export interface Article {
   id: number;
   title: string;
   slug: string;
