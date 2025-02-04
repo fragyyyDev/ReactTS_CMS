@@ -1,4 +1,3 @@
-import React from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Article } from "./Home"; // Ujistěte se, že cesta odpovídá vašemu projektu
 import ReactMarkdown from "react-markdown";
@@ -33,17 +32,17 @@ const ArticleDetail = () => {
                         )}
                         {block.type === "paragraph" && (
                             <div className="prose">
-                            <ReactMarkdown
-                              components={{
-                                a: ({node, ...props}) => (
-                                  <a {...props} className="text-blue-500 underline" />
-                                )
-                              }}
-                            >
-                              {block.data.text || ""}
-                            </ReactMarkdown>
-                          </div>
-                          
+                                <ReactMarkdown
+                                    components={{
+                                        a: ({ node, ...props }) => (
+                                            <a {...props} className="text-blue-500 underline" />
+                                        )
+                                    }}
+                                >
+                                    {block.data.text || ""}
+                                </ReactMarkdown>
+                            </div>
+
                         )}
                         {block.type === "image" && (
                             <img src={block.data.url} alt={block.data.caption} />

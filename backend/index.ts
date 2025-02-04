@@ -138,9 +138,20 @@ app.post(
       const createdAt = new Date().toISOString();
       const updatedAt = new Date().toISOString();
 
+      // Validate required fields
       if (!title || !coverImage || !author || !blocks) {
         res.status(400).json({ error: 'Chybí povinné údaje' });
         return;
+      }
+
+      // Check if slug already exists
+      if (slug) {
+        const slugCheckQuery = 'SELECT 1 FROM articles WHERE slug = $1';
+        const slugCheckResult = await pool.query(slugCheckQuery, [slug]);
+        if (slugCheckResult.rowCount && slugCheckResult.rowCount > 0) {
+          res.status(403).json({ error: 'Článek s tímto slugem již existuje' });
+          return;
+        }
       }
 
       const queryText = `
@@ -163,6 +174,29 @@ app.post(
   }
 );
 
+app.delete("/delete-article/:id", authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Smazání článku s daným id
+    const queryText = 'DELETE FROM articles WHERE id = $1 RETURNING *';
+    const result = await pool.query(queryText, [id]);
+
+    // Pokud článek neexistuje, vrátíme 404
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Článek nenalezen" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Článek byl úspěšně smazán",
+      article: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Chyba při mazání článku:", error);
+    res.status(500).json({ error: "Chyba při mazání článku" });
+  }
+});
 
 // Start serveru
 app.listen(port, () => {
