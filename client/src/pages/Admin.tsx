@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import ReactMarkdown from 'react-markdown';
 
 // Definice typů dle JSON struktury
 type BlockType = 'heading' | 'paragraph' | 'image' | 'subheading';
@@ -28,26 +29,23 @@ interface Article {
 const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
-    .normalize('NFD') // rozloží znaky s diakritikou
-    .replace(/[\u0300-\u036f]/g, '') // odstraní diakritiku
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .trim()
-    .replace(/\s+/g, '-'); // nahradí mezery pomlčkami
+    .replace(/\s+/g, '-');
 };
 
 const Admin: React.FC = () => {
-  // Stav pro základní pole článku
   const [title, setTitle] = useState<string>('');
   const [coverImage, setCoverImage] = useState<string>('');
   const [author, setAuthor] = useState<string>('');
   const [blocks, setBlocks] = useState<Block[]>([]);
 
-  // Stav pro přidávání nového bloku
   const [blockType, setBlockType] = useState<BlockType>('heading');
   const [blockDataText, setBlockDataText] = useState<string>('');
   const [blockDataUrl, setBlockDataUrl] = useState<string>('');
   const [blockDataCaption, setBlockDataCaption] = useState<string>('');
 
-  // Přidání bloku do seznamu bloků
   const addBlock = () => {
     const newBlock: Block = {
       id: (blocks.length + 1).toString(),
@@ -67,12 +65,10 @@ const Admin: React.FC = () => {
     setBlocks((prevBlocks) => [...prevBlocks, newBlock]);
   };
 
-  // Funkce k mazání bloku
   const deleteBlock = (id: string) => {
     setBlocks((prevBlocks) => prevBlocks.filter((block) => block.id !== id));
   };
 
-  // Funkce, která se spustí po stisknutí tlačítka Zveřejnit
   const publishArticle = async () => {
     const article: Article = {
       title,
@@ -103,7 +99,6 @@ const Admin: React.FC = () => {
       const data = await response.json();
       console.log('Článek byl úspěšně vytvořen:', data);
       toast.success(`Článek byl úspěšně vytvořen`);
-
     } catch (error) {
       console.error('Chyba při publikování článku:', error);
       toast.error(`Chyba při publikování článku ${error}`);
@@ -203,7 +198,7 @@ const Admin: React.FC = () => {
                   type="text"
                   value={blockDataText}
                   onChange={(e) => setBlockDataText(e.target.value)}
-                  placeholder="Text obsahu bloku"
+                  placeholder="Text obsahu bloku. Pro odkaz použijte syntax: [odkazový text](https://example.com)"
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
@@ -231,7 +226,9 @@ const Admin: React.FC = () => {
                       <strong>{block.type}:</strong>{' '}
                       {block.type === 'image'
                         ? `URL: ${block.data.url}, Popisek: ${block.data.caption}`
-                        : block.data.text}
+                        : block.type === 'paragraph'
+                          ? <ReactMarkdown>{block.data.text || ""}</ReactMarkdown>
+                          : block.data.text}
                     </span>
                     <button
                       type="button"
@@ -286,7 +283,18 @@ const Admin: React.FC = () => {
                       </h3>
                     )}
                     {block.type === 'paragraph' && (
-                      <p>{block.data.text || 'Odstavec'}</p>
+                      <div className="prose">
+                        <ReactMarkdown
+                          components={{
+                            a: ({ node, ...props }) => (
+                              <a {...props} className="text-blue-500 underline" />
+                            )
+                          }}
+                        >
+                          {block.data.text || ""}
+                        </ReactMarkdown>
+                      </div>
+
                     )}
                     {block.type === 'image' && block.data.url && (
                       <img

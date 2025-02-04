@@ -1,8 +1,10 @@
+import React from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { Article } from "./Home"; 
+import { Article } from "./Home"; // Ujistěte se, že cesta odpovídá vašemu projektu
+import ReactMarkdown from "react-markdown";
 
 const ArticleDetail = () => {
-    useParams<{ slug: string; }>();
+    const { slug } = useParams<{ slug: string }>();
     const location = useLocation();
     const article = location.state as Article | undefined;
 
@@ -23,10 +25,26 @@ const ArticleDetail = () => {
             <div>
                 {article.blocks.map((block, index) => (
                     <div key={index} className="mb-2">
-                        {/* Podle typu bloku můžeš podmíněně vykreslit obsah */}
-                        {block.type === "heading" && <h2 className="text-3xl font-bold">{block.data.text}</h2>}
-                        {block.type === "subheading" && <h3 className="text-2xl font-semibold">{block.data.text}</h3>}
-                        {block.type === "paragraph" && <p>{block.data.text}</p>}
+                        {block.type === "heading" && (
+                            <h2 className="text-3xl font-bold">{block.data.text}</h2>
+                        )}
+                        {block.type === "subheading" && (
+                            <h3 className="text-2xl font-semibold">{block.data.text}</h3>
+                        )}
+                        {block.type === "paragraph" && (
+                            <div className="prose">
+                            <ReactMarkdown
+                              components={{
+                                a: ({node, ...props}) => (
+                                  <a {...props} className="text-blue-500 underline" />
+                                )
+                              }}
+                            >
+                              {block.data.text || ""}
+                            </ReactMarkdown>
+                          </div>
+                          
+                        )}
                         {block.type === "image" && (
                             <img src={block.data.url} alt={block.data.caption} />
                         )}
