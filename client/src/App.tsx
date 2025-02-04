@@ -5,6 +5,8 @@ import Admin from './pages/Admin'
 import Home from './pages/Home'
 import { ToastContainer, Slide } from 'react-toastify'
 import ArticleDetail from './pages/Article'
+import AdminClankyScreen from './components/AdminClankyScreen'
+import AdminClanky from './pages/AdminClanky'
 
 function App() {
 
@@ -18,6 +20,14 @@ function App() {
           element={
             <PrivateRoute>
               <Admin />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin-clanky"
+          element={
+            <PrivateRoute>
+              <AdminClanky />
             </PrivateRoute>
           }
         />

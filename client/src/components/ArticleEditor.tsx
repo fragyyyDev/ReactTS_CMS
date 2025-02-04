@@ -1,6 +1,19 @@
 // ArticleEditor.tsx
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { DotsSixVertical } from '@phosphor-icons/react';
 
 export type BlockType = 'heading' | 'paragraph' | 'image' | 'subheading';
 
@@ -43,6 +56,56 @@ const generateSlug = (title: string): string => {
     .replace(/\s+/g, '-');
 };
 
+interface SortableItemProps {
+  block: Block;
+  deleteBlock: (id: string) => void;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({ block, deleteBlock }) => {
+  // Používáme hook useSortable pro každý prvek seznamu
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: block.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex justify-between items-center p-2 border border-gray-200 rounded"
+    >
+      <span>
+        <strong>{block.type}:</strong>{' '}
+        {block.type === 'image'
+          ? `URL: ${block.data.url}, Popisek: ${block.data.caption}`
+          : block.type === 'paragraph'
+            ? <ReactMarkdown>{block.data.text || ''}</ReactMarkdown>
+            : block.data.text}
+      </span>
+      <button
+        type="button"
+        onClick={() => deleteBlock(block.id)}
+        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+      >
+        Smazat
+      </button>
+      {/* Tlačítko, které aktivuje drag – na něj připojujeme atributy a event listenery */}
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="text-gray-500 px-2 py-1 rounded cursor-grab"
+      >
+        <DotsSixVertical size={32} />
+      </button>
+    </li>
+  );
+};
+
 const ArticleEditor: React.FC<ArticleEditorProps> = ({
   initialTitle = '',
   initialCoverImage = '',
@@ -77,14 +140,19 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
     }
 
     setBlocks((prev) => [...prev, newBlock]);
-    // Vyčistíme vstupy pro nový blok
-    setBlockDataText('');
-    setBlockDataUrl('');
-    setBlockDataCaption('');
   };
 
   const deleteBlock = (id: string) => {
     setBlocks((prev) => prev.filter((block) => block.id !== id));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = blocks.findIndex((block) => block.id === active.id);
+      const newIndex = blocks.findIndex((block) => block.id === over.id);
+      setBlocks((items) => arrayMove(items, oldIndex, newIndex));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -202,30 +270,18 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
         {blocks.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-2">Seznam bloků:</h3>
-            <ul className="space-y-2">
-              {blocks.map((block) => (
-                <li
-                  key={block.id}
-                  className="flex justify-between items-center p-2 border border-gray-200 rounded"
-                >
-                  <span>
-                    <strong>{block.type}:</strong>{' '}
-                    {block.type === 'image'
-                      ? `URL: ${block.data.url}, Popisek: ${block.data.caption}`
-                      : block.type === 'paragraph'
-                      ? <ReactMarkdown>{block.data.text || ""}</ReactMarkdown>
-                      : block.data.text}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => deleteBlock(block.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                  >
-                    Smazat
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext
+                items={blocks.map((b) => b.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-2">
+                  {blocks.map((block) => (
+                    <SortableItem key={block.id} block={block} deleteBlock={deleteBlock} />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           </div>
         )}
 
@@ -272,10 +328,10 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
                         components={{
                           a: ({ node, ...props }) => (
                             <a {...props} className="text-blue-500 underline" />
-                          )
+                          ),
                         }}
                       >
-                        {block.data.text || ""}
+                        {block.data.text || ''}
                       </ReactMarkdown>
                     </div>
                   )}
