@@ -40,18 +40,15 @@ const authorizeMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Očekává hlavičku "Authorization: Bearer <token>"
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     res.status(401).json({ error: 'No token provided' });
     return;
   }
 
-  const token = authHeader.split(' ')[1]; // oddělíme "Bearer"
+  const token = authHeader.split(' ')[1];
   try {
-    // Ověření tokenu
     const decoded = jwt.verify(token, SECRET_KEY);
-    // Uložíme informace o uživateli do requestu
     (req as any).user = decoded;
     next();
   } catch (error) {
@@ -74,16 +71,20 @@ app.get('/', (req: Request, res: Response): void => {
 
 app.get('/get-all-articles', async (req: Request, res: Response): Promise<void> => {
   try {
-    const allArticles = await pool.query('SELECT * FROM articles');
+    // Načtení článků z DB seřazených podle createdat sestupně
+    const result = await pool.query('SELECT * FROM articles ORDER BY createdat DESC');
+    const articles = result.rows;
+
     res.json({
-      message: 'Data received successfully',
-      data: allArticles.rows,
+      message: 'Data načtena úspěšně',
+      data: articles,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.post('/login', async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
@@ -94,7 +95,6 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Hledání uživatele v databázi
     const queryResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = queryResult.rows[0];
 
@@ -103,13 +103,11 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Porovnání hesel (plaintext, pro produkci použijte bcrypt)
     if (user.password !== password) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    // Generování JWT (platnost 1 hodina)
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       SECRET_KEY,
@@ -124,13 +122,47 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
 });
 
 app.get('/secret', authorizeMiddleware, (req: Request, res: Response): void => {
-  // Pokud jsme sem došli, token je platný
   const userInfo = (req as any).user;
   res.json({
     message: 'This is a secret endpoint!',
     userInfo,
   });
 });
+
+app.post(
+  '/create-article',
+  authorizeMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { title, coverImage, author, blocks, slug } = req.body;
+      const createdAt = new Date().toISOString();
+      const updatedAt = new Date().toISOString();
+
+      if (!title || !coverImage || !author || !blocks) {
+        res.status(400).json({ error: 'Chybí povinné údaje' });
+        return;
+      }
+
+      const queryText = `
+        INSERT INTO articles (title, slug, coverimage, author, createdat, updatedat, blocks)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `;
+      const values = [title, slug, coverImage, author, createdAt, updatedAt, JSON.stringify(blocks)];
+
+      const result = await pool.query(queryText, values);
+
+      res.status(201).json({
+        message: 'Článek byl úspěšně vytvořen',
+        article: result.rows[0],
+      });
+    } catch (error) {
+      console.error('Chyba při vytváření článku:', error);
+      res.status(500).json({ error: 'Chyba při vytváření článku' });
+    }
+  }
+);
+
 
 // Start serveru
 app.listen(port, () => {

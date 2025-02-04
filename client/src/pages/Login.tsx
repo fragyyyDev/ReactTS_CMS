@@ -1,6 +1,9 @@
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Login = () => {
+  const navigate = useNavigate();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -8,6 +11,7 @@ const Login = () => {
     event.preventDefault();
 
     if (!emailRef.current || !passwordRef.current) {
+      toast.error("Něco se pokazilo, zkontrolujte vstupy.");
       console.error("Input references not set");
       return;
     }
@@ -29,20 +33,22 @@ const Login = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
+        toast.error(`Chyba na serveru: ${errorText}`);
         console.error("Server error:", errorText);
         return;
       }
 
       const data = await response.json();
+      toast.success("Přihlášení proběhlo úspěšně!");
       console.log("Login successful:", data);
 
       // Uložení tokenu do localStorage, pokud je k dispozici
       if (data.token) {
         localStorage.setItem("token", data.token);
-        // Případně můžete provést přesměrování na chráněnou stránku
-        // například pomocí useNavigate z react-router-dom
+        navigate("/admin");
       }
     } catch (error) {
+      toast.error("Chyba při přihlašování");
       console.error("Login error:", error);
     }
   };
@@ -72,7 +78,7 @@ const Login = () => {
                 required
                 autoComplete="email"
                 ref={emailRef}
-                className="block w-full rounded-md bg-white px-3 border-2 border-black py-1.5 text-base text-gray-900 placeholder:text-gray-400 focus:-2 focus:-indigo-600"
+                className="block w-full rounded-md bg-white px-3 border-2 border-black py-1.5 text-base text-gray-900 placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -94,7 +100,7 @@ const Login = () => {
                 required
                 autoComplete="current-password"
                 ref={passwordRef}
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base border-2 border-black text-gray-900  placeholder:text-gray-400 focus:-indigo-600"
+                className="block w-full rounded-md bg-white px-3 py-1.5 text-base border-2 border-black text-gray-900 placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -102,7 +108,7 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:-indigo-600"
+              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-500"
             >
               Přihlásit se
             </button>
