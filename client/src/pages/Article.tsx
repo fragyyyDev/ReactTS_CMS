@@ -1,11 +1,52 @@
+import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { Article } from "./Home"; // Ujistěte se, že cesta odpovídá vašemu projektu
 import ReactMarkdown from "react-markdown";
+import { Article } from "./Home"; // Ujistěte se, že cesta odpovídá vašemu projektu
 
 const ArticleDetail = () => {
+    // Získáme slug z URL
     const { slug } = useParams<{ slug: string }>();
+    // Pokud jsme při navigaci poslali article v location.state, použijeme jej
     const location = useLocation();
-    const article = location.state as Article | undefined;
+    const locationArticle = location.state as Article | undefined;
+
+    // Stav pro článek, načítání a případnou chybu
+    const [article, setArticle] = useState<Article | undefined>(locationArticle);
+    const [loading, setLoading] = useState<boolean>(!locationArticle);
+    const [error, setError] = useState<string>("");
+
+    useEffect(() => {
+        // Pokud článek není předán přes state a máme slug, provedeme fetch z API
+        if (!article && slug) {
+            const fetchArticle = async () => {
+                try {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/get-article-data/${slug}`
+                    );
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    // Předpokládáme strukturu { article: ... }
+                    setArticle(data.article);
+                } catch (err) {
+                    console.error(err);
+                    setError("Chyba při načítání článku.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchArticle();
+        }
+    }, [article, slug]);
+
+    if (loading) {
+        return <div>Načítání článku...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
 
     if (!article) {
         return <div>Článek nenalezen. Data nejsou k dispozici.</div>;
@@ -42,7 +83,6 @@ const ArticleDetail = () => {
                                     {block.data.text || ""}
                                 </ReactMarkdown>
                             </div>
-
                         )}
                         {block.type === "image" && (
                             <img src={block.data.url} alt={block.data.caption} />

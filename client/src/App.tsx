@@ -21,6 +21,14 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/edit-article/:slug"
+          element={
+            <PrivateRoute>
+              <Admin />
+            </PrivateRoute>
+          }
+        />
         <Route path='/article/:slug' element={<ArticleDetail />} />
       </Routes>
       <ToastContainer

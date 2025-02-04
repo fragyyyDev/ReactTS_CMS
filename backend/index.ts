@@ -85,6 +85,22 @@ app.get('/get-all-articles', async (req: Request, res: Response): Promise<void> 
   }
 });
 
+app.get("/get-article-data/:slug", async (req: Request, res: Response): Promise<void> => {
+  const { slug } = req.params;
+  try {
+    const queryText = "SELECT * FROM articles WHERE slug = $1";
+    const result = await pool.query(queryText, [slug]);
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Článek nenalezen" });
+      return;
+    }
+    // Vracíme celý řádek článku
+    res.status(200).json({ article: result.rows[0] });
+  } catch (error) {
+    console.error("Chyba při načítání článku:", error);
+    res.status(500).json({ error: "Chyba při načítání článku" });
+  }
+});
 
 app.post('/login', async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
