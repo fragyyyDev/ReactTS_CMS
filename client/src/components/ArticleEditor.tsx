@@ -76,7 +76,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ block, deleteBlock }) => {
     <li
       ref={setNodeRef}
       style={style}
-      className="p-2 border border-gray-200 rounded-lg flex flex-row justify-between gap-2"
+      className="p-2 border border-gray-200 bg-white rounded-lg flex flex-row justify-between gap-2"
     >
       <div className="flex flex-col">
         <div>
@@ -178,6 +178,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
     <div className="flex flex-col md:flex-row gap-8">
       {/* Formulářová část */}
       <form onSubmit={handleSubmit} className="flex-1 space-y-6  rounded">
+        <h1 className="text-5xl font-bold mb-6">Nový článek</h1>
         <div className="grid grid-cols-1 gap-4 bg-[#F1F1FA] p-4 rounded-lg">
           <h3 className='font-semibold'>Metadata</h3>
           <div>
@@ -314,8 +315,11 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
       </form>
 
       {/* Live Preview */}
-      <div className="flex-1 border p-4 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Live Preview</h2>
+      <div className="flex-1 p-4 rounded border-l border-black/15">
+        <div className="bg-green-100 mb-4 gap-x-2 rounded-full text-green-600 w-fit px-2 py-1 text-sm flex items-center">
+          <div className="w-4 h-4 bg-green-600 rounded-full"></div>
+          <h2 className=" font-bold"> Živý náhled</h2>
+        </div>
         <div>
           <h1 className="text-3xl font-bold">{title || 'Název článku'}</h1>
           {coverImage && (

@@ -3,6 +3,8 @@ import { toast } from 'react-toastify';
 import { useQuery, useQueryClient } from 'react-query';
 import DeleteConfirmation from '../components/DeleteConfirmation';
 import { PencilSimple, Trash } from '@phosphor-icons/react';
+import { useNavigate } from 'react-router-dom';
+
 
 export interface FetchedArticle {
     id: number;
@@ -41,7 +43,7 @@ const formatDate = (dateStr: string): string => {
 
 const AdminClankyScreen: React.FC = () => {
     const queryClient = useQueryClient();
-
+    const navigate = useNavigate();
     // Stav pro potvrzení smazání článku
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
     const [selectedArticleId, setSelectedArticleId] = useState<string>('');
@@ -106,7 +108,7 @@ const AdminClankyScreen: React.FC = () => {
                                 </div>
                                 <div className="mt-2 sm:mt-0 flex space-x-2">
                                     <button
-                                        onClick={() => console.log("Edit article:", article.slug)}
+                                        onClick={() => navigate("/edit-article/" + article.id)}
                                         className=" px-2 py-1 rounded cursor-pointer"
                                     >
                                         <PencilSimple size={24} />

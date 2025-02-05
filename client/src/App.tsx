@@ -5,8 +5,8 @@ import Admin from './pages/Admin'
 import Home from './pages/Home'
 import { ToastContainer, Slide } from 'react-toastify'
 import ArticleDetail from './pages/Article'
-import AdminClankyScreen from './components/AdminClankyScreen'
 import AdminClanky from './pages/AdminClanky'
+import EditClanku from './pages/EditClanku'
 
 function App() {
 
@@ -32,10 +32,10 @@ function App() {
           }
         />
         <Route
-          path="/edit-article/:slug"
+          path="/edit-article/:id"
           element={
             <PrivateRoute>
-              <Admin />
+              <EditClanku />
             </PrivateRoute>
           }
         />

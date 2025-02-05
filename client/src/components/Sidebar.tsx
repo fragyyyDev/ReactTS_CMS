@@ -18,12 +18,12 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleSidebar, isVisible, doAnimation
   
   return (
     <div
-      className={`p-2 fixed top-0 left-0 md:w-[30vw] sm:w-[35vw] lg:w-[25vw] xl:w-[22vw] 2xl:w-[17vw] w-screen h-full ${
+      className={`p-2 border-r fixed top-0 left-0 md:w-[30vw] sm:w-[35vw] lg:w-[25vw] xl:w-[22vw] 2xl:w-[17vw] w-screen h-full ${
         doAnimation ? "transition-transform duration-300 ease-in-out" : ""
       } ${isVisible ? "translate-x-0" : "-translate-x-full"}`}
     >
       <div
-        className={`relative dark:bg-dark/50 backdrop-blur-2xl bg-lightbackground flex flex-col rounded-lg h-full p-4 border border-lightsecondary dark:border-secondary overflow-y-auto overflow-x-hidden z-10 transform`}
+        className={`relative dark:bg-dark/50 backdrop-blur-2xl bg-lightbackground flex flex-col rounded-lg h-full p-4 overflow-y-auto overflow-x-hidden z-10 transform`}
       >
         <h2 className="text-xl font-bold mb-4">Blog</h2>
         <ul>

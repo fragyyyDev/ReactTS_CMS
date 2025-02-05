@@ -43,7 +43,6 @@ const AdminScreen: React.FC = () => {
 
   return (
     <div className="flex-1 p-4 overflow-y-auto mt-22 md:mt-8 lg:mt-6 xl:mt-6">
-      <h1 className="text-5xl font-bold mb-6">Nový článek</h1>
 
       {/* Editor pro vytváření článku */}
       <ArticleEditor onSubmit={publishArticle} />
