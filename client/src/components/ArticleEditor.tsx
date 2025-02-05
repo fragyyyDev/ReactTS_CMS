@@ -44,6 +44,7 @@ interface ArticleEditorProps {
   initialAuthor?: string;
   initialBlocks?: Block[];
   onSubmit: (article: Article) => void;
+  isUpdating?: boolean;
 }
 
 // Funkce pro generování slugu z názvu článku
@@ -51,7 +52,7 @@ const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u0300-\u036f]/g, '') // odstranění diakritiky
     .trim()
     .replace(/\s+/g, '-');
 };
@@ -61,8 +62,8 @@ interface SortableItemProps {
   deleteBlock: (id: string) => void;
 }
 
+// Komponenta pro každý blok, aby bylo možné s ním hýbat
 const SortableItem: React.FC<SortableItemProps> = ({ block, deleteBlock }) => {
-  // Používáme hook useSortable pro každý prvek seznamu
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: block.id,
   });
@@ -98,7 +99,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ block, deleteBlock }) => {
         >
           <Trash size={24} />
         </button>
-        {/* Tlačítko, které aktivuje drag – na něj připojujeme atributy a event listenery */}
+        {/* Tlačítko pro drag-n-drop */}
         <button
           type="button"
           {...attributes}
@@ -119,6 +120,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   initialAuthor = '',
   initialBlocks = [],
   onSubmit,
+  isUpdating = false,
 }) => {
   const [title, setTitle] = useState<string>(initialTitle);
   const [coverImage, setCoverImage] = useState<string>(initialCoverImage);
@@ -132,6 +134,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
 
   const addBlock = () => {
     const newBlock: Block = {
+      // Pro jednoduchost používáme index jako ID, v reálné praxi je vhodné generovat unikátní ID (např. pomocí uuid).
       id: (blocks.length + 1).toString(),
       type: blockType,
       data: {},
@@ -177,10 +180,10 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   return (
     <div className="flex flex-col md:flex-row gap-8">
       {/* Formulářová část */}
-      <form onSubmit={handleSubmit} className="flex-1 space-y-6  rounded">
-        <h1 className="text-5xl font-bold mb-6">Nový článek</h1>
+      <form onSubmit={handleSubmit} className="flex-1 space-y-6 rounded">
+        <h1 className="text-5xl font-bold mb-6">{isUpdating ? "Editace článku": "Tvorba článku"}</h1>
         <div className="grid grid-cols-1 gap-4 bg-[#F1F1FA] p-4 rounded-lg">
-          <h3 className='font-semibold'>Metadata</h3>
+          <h3 className="font-semibold">Metadata</h3>
           <div>
             <label className="block w-full mb-1 font-medium">Název článku:</label>
             <input
@@ -193,7 +196,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1/2">
-              <label className="block  w-full mb-1 font-medium">URL Fotky článku</label>
+              <label className="block w-full mb-1 font-medium">URL Fotky článku</label>
               <input
                 type="text"
                 value={coverImage}
@@ -203,7 +206,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               />
             </div>
             <div className="w-1/2">
-              <label className="block  w-full mb-1 font-medium">Autor:</label>
+              <label className="block w-full mb-1 font-medium">Autor:</label>
               <input
                 type="text"
                 value={author}
@@ -213,17 +216,15 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               />
             </div>
           </div>
-
         </div>
 
         <div className="my-6" />
 
         <div className="bg-[#F1F1FA] p-4 rounded-lg">
-
           <h2 className="text-xl font-semibold">Obsah</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block  mb-1">Typ bloku:</label>
+              <label className="block mb-1">Typ bloku:</label>
               <select
                 value={blockType}
                 onChange={(e) => setBlockType(e.target.value as BlockType)}
@@ -239,17 +240,17 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             {blockType === 'image' ? (
               <>
                 <div>
-                  <label className="block  mb-1">URL obrázku:</label>
+                  <label className="block mb-1">URL obrázku:</label>
                   <input
                     type="text"
                     value={blockDataUrl}
                     onChange={(e) => setBlockDataUrl(e.target.value)}
                     placeholder="https://example.com/obrazek.jpg"
-                    className="w-full p-2 border  border-gray-300 rounded bg-white"
+                    className="w-full p-2 border border-gray-300 rounded bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block  mb-1">Popisek obrázku:</label>
+                  <label className="block mb-1">Popisek obrázku:</label>
                   <input
                     type="text"
                     value={blockDataCaption}
@@ -261,7 +262,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               </>
             ) : (
               <div>
-                <label className="block  mb-1">Text:</label>
+                <label className="block mb-1">Text:</label>
                 <input
                   type="text"
                   value={blockDataText}
@@ -280,13 +281,11 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               Přidat blok
             </button>
           </div>
-
-
         </div>
 
         <div className="bg-[#F1F1FA] p-4 rounded-lg">
           {blocks.length > 0 && (
-            <div className="">
+            <div>
               <h3 className="text-lg font-semibold mb-2">Bloky</h3>
               <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext
@@ -310,7 +309,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
           type="submit"
           className="bg-[#8165FF] w-full text-white px-4 py-2 rounded-xl cursor-pointer"
         >
-          Zveřejnit článek
+          {isUpdating ? "Uložit změny" : "Zveřejnit článek"}
         </button>
       </form>
 
@@ -318,7 +317,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
       <div className="flex-1 p-4 rounded border-l border-black/15">
         <div className="bg-green-100 mb-4 gap-x-2 rounded-full text-green-600 w-fit px-2 py-1 text-sm flex items-center">
           <div className="w-4 h-4 bg-green-600 rounded-full"></div>
-          <h2 className=" font-bold"> Živý náhled</h2>
+          <h2 className="font-bold">Živý náhled</h2>
         </div>
         <div>
           <h1 className="text-3xl font-bold">{title || 'Název článku'}</h1>

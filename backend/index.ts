@@ -190,6 +190,8 @@ app.post(
   }
 );
 
+
+
 app.delete("/delete-article/:id", authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -213,6 +215,85 @@ app.delete("/delete-article/:id", authorizeMiddleware, async (req: Request, res:
     res.status(500).json({ error: "Chyba při mazání článku" });
   }
 });
+
+app.put(
+  '/update-article/:id',
+  authorizeMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { title, coverImage, author, blocks, slug } = req.body;
+      const updatedAt = new Date().toISOString();
+
+      // Ověření, že máme ID článku v parametru
+      if (!id) {
+        res.status(400).json({ error: 'ID článku nebylo zadáno v URL parametru.' });
+        return;
+      }
+
+      // Ověření, že máme potřebné údaje v těle požadavku
+      if (!title || !coverImage || !author || !blocks) {
+        res
+          .status(400)
+          .json({ error: 'Chybí některé z povinných údajů (title, coverImage, author, blocks).' });
+        return;
+      }
+
+      // Pokud se mění slug, ověřit, zda slug neexistuje u jiného článku
+      if (slug) {
+        const slugCheckQuery = 'SELECT id FROM articles WHERE slug = $1 AND id <> $2';
+        const slugCheckResult = await pool.query(slugCheckQuery, [slug, id]);
+        if (slugCheckResult.rowCount !== null && slugCheckResult.rowCount > 0) {
+          res.status(403).json({ error: 'Článek s tímto slugem již existuje.' });
+          return;
+        }
+      }
+
+      // Aktualizační dotaz
+      const updateQuery = `
+        UPDATE articles
+        SET 
+          title = $1,
+          slug = $2,
+          coverimage = $3,
+          author = $4,
+          updatedat = $5,
+          blocks = $6
+        WHERE id = $7
+        RETURNING *
+      `;
+
+      const values = [
+        title,
+        // Pokud slug nechceš vždy měnit, můžeš si tu ošetřit situaci, 
+        // kdy nepřijde slug - a ponechat starý slug v DB.
+        // Pro jednoduchost ho sem ale posíláme tak, jak přišel z klienta.
+        slug,
+        coverImage,
+        author,
+        updatedAt,
+        JSON.stringify(blocks),
+        id,
+      ];
+
+      const result = await pool.query(updateQuery, values);
+
+      if (result.rowCount === 0) {
+        // Nikdo se neaktualizoval -> článek s daným ID neexistuje
+        res.status(404).json({ error: 'Článek s daným ID neexistuje.' });
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Článek byl úspěšně aktualizován',
+        article: result.rows[0],
+      });
+    } catch (error) {
+      console.error('Chyba při aktualizaci článku:', error);
+      res.status(500).json({ error: 'Došlo k chybě při aktualizaci článku.' });
+    }
+  }
+);
 
 // Start serveru
 app.listen(port, () => {

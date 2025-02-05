@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminScreen from '../components/AdminScreen';
 import Navbar from '../components/Navbar';
+import EditClankuScreen from '../components/EditClankuScreen';
 
 const EditClanku: React.FC = () => {
   // Stav pro viditelnost sidebaru na mobilu
@@ -28,7 +29,7 @@ const EditClanku: React.FC = () => {
           isSidebarVisible={sidebarVisible}
           setIsSidebarVisible={setSidebarVisible}
         />
-        <AdminScreen />
+        <EditClankuScreen />
       </div>
     </div>
   );
