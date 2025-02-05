@@ -40,7 +40,7 @@ const Home = () => {
   return (
     <div className="text-center flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-5xl mb-4">Vítej na blog stránce</h1>
-      <Link to="/login" className="text-lg underline mb-8">
+      <Link to="/admin" className="text-lg underline mb-8">
         Přihlásit se k adminovi
       </Link>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

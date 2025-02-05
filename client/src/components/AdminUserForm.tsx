@@ -1,15 +1,18 @@
 import React from 'react';
+import { FetchedUser } from './AdminUzivateleScreen';
 
 export type AdminUserFormProps = {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isUpdating: boolean;
   onClose: () => void;
+  selectedUser?: FetchedUser | null;
 };
 
 const AdminUserFormModal: React.FC<AdminUserFormProps> = ({
   onSubmit,
   isUpdating = false,
   onClose,
+  selectedUser = null,
 }) => {
   return (
     <div
@@ -26,7 +29,7 @@ const AdminUserFormModal: React.FC<AdminUserFormProps> = ({
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>
           <div className="flex flex-col">
             <label className="mb-1 font-medium" htmlFor="email">
-              Nový Email
+              Email
             </label>
             <input
               className="w-full border p-2 rounded focus:bg-[#F1F1FA] focus:outline-none"
@@ -35,11 +38,12 @@ const AdminUserFormModal: React.FC<AdminUserFormProps> = ({
               id="email"
               placeholder="Zadejte email"
               required
+              defaultValue={isUpdating && selectedUser ? selectedUser.email : ''}
             />
           </div>
           <div className="flex flex-col">
             <label className="mb-1 font-medium" htmlFor="password">
-              Nové Heslo
+              {isUpdating ? "Nové Heslo" : "Heslo"}
             </label>
             <input
               className="w-full border p-2 rounded focus:bg-[#F1F1FA] focus:outline-none"

@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from 'react-query';
 import DeleteConfirmation from './DeleteConfirmation';
 import AdminUserFormModal from './AdminUserForm';
 import { PencilSimple, Trash } from '@phosphor-icons/react';
-import { useNavigate } from 'react-router-dom';
 
 export interface FetchedUser {
     id: number;
@@ -39,7 +38,6 @@ const formatDate = (dateStr: string): string => {
 
 const AdminUzivateleScreen: React.FC = () => {
     const queryClient = useQueryClient();
-    const navigate = useNavigate();
 
     // For Delete Confirmation Modal
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
@@ -119,7 +117,7 @@ const AdminUzivateleScreen: React.FC = () => {
         }
     };
 
-    // Update existing user handler (example implementation)
+    // Update existing user handler
     const updateUser = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         if (!selectedUser) {
@@ -231,11 +229,11 @@ const AdminUzivateleScreen: React.FC = () => {
                 <AdminUserFormModal
                     onSubmit={isUpdatingUser ? updateUser : createUser}
                     isUpdating={isUpdatingUser}
-                    // Optionally, you could pass the selectedUser for pre-filling form values
                     onClose={() => {
                         setShowUserModal(false);
                         setSelectedUser(null);
                     }}
+                    selectedUser={selectedUser}
                 />
             )}
         </div>

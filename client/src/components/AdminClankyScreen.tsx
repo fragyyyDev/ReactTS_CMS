@@ -108,7 +108,7 @@ const AdminClankyScreen: React.FC = () => {
                                 </div>
                                 <div className="mt-2 sm:mt-0 flex space-x-2">
                                     <button
-                                        onClick={() => navigate("/edit-article/" + article.id)}
+                                        onClick={() => navigate("/edit-article/" + article.id, { state: { article: article } })}
                                         className=" px-2 py-1 rounded cursor-pointer"
                                     >
                                         <PencilSimple size={24} />
