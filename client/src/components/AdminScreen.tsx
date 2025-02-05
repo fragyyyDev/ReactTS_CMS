@@ -2,7 +2,6 @@ import React from 'react';
 import ArticleEditor, { Article } from '../components/ArticleEditor';
 import { useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
-import AdminClankyScreen from './AdminClankyScreen'; // Upravte cestu dle vašeho umístění
 
 const AdminScreen: React.FC = () => {
   const queryClient = useQueryClient();

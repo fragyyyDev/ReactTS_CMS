@@ -1,4 +1,4 @@
-import { List, X } from '@phosphor-icons/react';
+import { X } from '@phosphor-icons/react';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -27,9 +27,10 @@ const Sidebar: React.FC<SidebarProps> = ({ toggleSidebar, isVisible, doAnimation
       >
         <h2 className="text-xl font-bold mb-4">Blog</h2>
         <ul>
-          <li className='font-medium'><Link to="/admin">Vytvořit článek</Link></li>
-          <li className='font-medium'><Link to="/admin-clanky">Články</Link></li>
-          <li className='font-medium'><button onClick={logout}>Odhlásit se</button></li>
+          <li className='font-medium cursor-pointer'><Link to="/admin">Vytvořit článek</Link></li>
+          <li className='font-medium cursor-pointer'><Link to="/admin-clanky">Články</Link></li>
+          <li className='font-medium cursor-pointer'><Link to="/admin-uzivatele">Uživatelé</Link></li>
+          <li className='font-medium cursor-pointer'><button onClick={logout} className='cursor-pointer'>Odhlásit se</button></li>
         </ul>
         {/* Tlačítko pro zavření sidebaru (pouze na mobilu) */}
         <button

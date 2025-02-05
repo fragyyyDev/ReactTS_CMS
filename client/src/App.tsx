@@ -7,6 +7,7 @@ import { ToastContainer, Slide } from 'react-toastify'
 import ArticleDetail from './pages/Article'
 import AdminClanky from './pages/AdminClanky'
 import EditClanku from './pages/EditClanku'
+import AdminUzivatele from './pages/AdminUzivatele'
 
 function App() {
 
@@ -28,6 +29,14 @@ function App() {
           element={
             <PrivateRoute>
               <AdminClanky />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin-uzivatele"
+          element={
+            <PrivateRoute>
+              <AdminUzivatele />
             </PrivateRoute>
           }
         />

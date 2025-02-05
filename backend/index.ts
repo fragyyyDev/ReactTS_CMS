@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 // Načtení konfigurace z .env
 const SECRET_KEY = process.env.JWT_SECRET || 'some_fallback_secret';
@@ -119,7 +120,9 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (user.password !== password) {
+    // Use bcrypt.compare to check if the provided password matches the hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
@@ -137,12 +140,138 @@ app.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+
 app.get('/secret', authorizeMiddleware, (req: Request, res: Response): void => {
   const userInfo = (req as any).user;
   res.json({
     message: 'This is a secret endpoint!',
     userInfo,
   });
+});
+
+app.get('/get-all-users', authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await pool.query('SELECT id, email, createdat, updatedat FROM users ORDER BY id DESC');
+    const users = result.rows;
+
+    res.json({
+      message: 'Data načtena úspěšně',
+      data: users,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete("/delete-user/:id", authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Smazání uzivatel s daným id
+    const queryText = 'DELETE FROM users WHERE id = $1 RETURNING *';
+    const result = await pool.query(queryText, [id]);
+
+    // Pokud uživatel neexistuje, vrátíme 404
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Uživatel nenalezen" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Uživatel byl úspěšně smazán",
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Chyba při mazání uživatele:", error);
+    res.status(500).json({ error: "Chyba při mazání uživatele" });
+  }
+});
+
+app.put('/update-user/:id', authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { email, password } = req.body;
+
+    // Validate that email and password are provided
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    // Check if the user exists
+    const userQuery = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    if (userQuery.rowCount === 0) {
+      res.status(404).json({ error: 'Uživatel nenalezen' });
+      return;
+    }
+
+    // Hash the new password before updating
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update the user record. The updatedat field is set to the current timestamp.
+    const updateQuery = `
+      UPDATE users
+      SET email = $1, password = $2, updatedat = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING id, email, createdat, updatedat
+    `;
+    const result = await pool.query(updateQuery, [email, hashedPassword, id]);
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: 'Uživatel nenalezen' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Uživatel byl úspěšně aktualizován',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Chyba při aktualizaci uživatele:", error);
+    res.status(500).json({ error: 'Chyba při aktualizaci uživatele' });
+  }
+});
+
+
+app.post('/create-user', authorizeMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate that email and password are provided
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    // Optionally, check if the user already exists
+    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existingUser.rowCount !== null && existingUser.rowCount > 0) {
+      res.status(409).json({ error: 'User already exists' });
+      return;
+    }
+
+    // Hash the password before saving it to the database
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Insert the new user into the database
+    const queryText = `
+      INSERT INTO users (email, password)
+      VALUES ($1, $2)
+      RETURNING id, email, createdat, updatedat
+    `;
+    const result = await pool.query(queryText, [email, hashedPassword]);
+
+    res.status(201).json({
+      message: 'Uživatel byl úspěšně vytvořen',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Chyba při vytváření uživatele:', error);
+    res.status(500).json({ error: 'Chyba při vytváření uživatele' });
+  }
 });
 
 app.post(
