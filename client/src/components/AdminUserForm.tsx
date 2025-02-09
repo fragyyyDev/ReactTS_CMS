@@ -21,7 +21,7 @@ const AdminUserFormModal: React.FC<AdminUserFormProps> = ({
     >
       <div
         className="bg-white p-6 rounded shadow-lg max-w-md w-full"
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+        onClick={(e) => e.stopPropagation()} 
       >
         <h1 className="text-4xl font-bold text-center mb-4">
           {isUpdating ? "Upravit uživatele" : "Vytvořit Uživatele"}

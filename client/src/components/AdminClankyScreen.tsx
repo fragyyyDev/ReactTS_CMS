@@ -44,7 +44,6 @@ const formatDate = (dateStr: string): string => {
 const AdminClankyScreen: React.FC = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    // Stav pro potvrzení smazání článku
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
     const [selectedArticleId, setSelectedArticleId] = useState<string>('');
 
@@ -95,9 +94,9 @@ const AdminClankyScreen: React.FC = () => {
             ) : (
                 <div className="space-y-2">
                     {articles &&
-                        articles.map((article, index) => (
+                        articles.map((article) => (
                             <div
-                                key={index}
+                                key={article.id}
                                 className="bg-gray-100 p-4 rounded-md flex flex-row items-start sm:items-center justify-between"
                             >
                                 <div className="flex-1">

@@ -13,7 +13,7 @@ const DeleteConfirmation: React.FC<DeleteConfirmProps> = ({ onClose, onDelete })
         >
             <div
                 className="bg-white p-6 rounded shadow-lg max-w-sm w-full"
-                onClick={(e) => e.stopPropagation()}  // zabráníme propagaci kliknutí a zavření modalu
+                onClick={(e) => e.stopPropagation()} 
             >
                 <p className="mb-4 text-center font-semibold">
                     Opravdu chcete smazat tento článek?<br />
